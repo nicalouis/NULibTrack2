@@ -1,5 +1,7 @@
 package LibrarianPanel;
 
+import Services.LibraryDB;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,12 +11,31 @@ public class ReportsPanel extends JPanel {
 
         setLayout(new GridLayout(2,2,20,20));
 
-        add(createCard("Total Books", "1250"));
-        add(createCard("Active Members", "540"));
-        add(createCard("Overdue Books", "22"));
-        add(createCard("Reservations", "5"));
+        LibraryDB db = LibraryDB.get();
+
+        add(createCard("Total Books", String.valueOf(db.books.size())));
+        add(createCard("Active Members", String.valueOf(db.patrons.size())));
+        add(createCard("Overdue Books", String.valueOf(getOverdueCount(db))));
+        add(createCard("Reservations", String.valueOf(db.reservations.size())));
     }
 
+    // ================= OVERDUE COUNT =================
+    private int getOverdueCount(LibraryDB db){
+
+        int count = 0;
+
+        for (LibraryDB.Book b : db.borrowed) {
+
+            if (b.borrowed && b.dueDate != null) {
+
+                count++;
+            }
+        }
+
+        return count;
+    }
+
+    // ================= CARD =================
     private JPanel createCard(String title, String value){
 
         JPanel panel = new JPanel();

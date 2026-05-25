@@ -10,14 +10,12 @@ public class authServ {
 
         for (User u : db.patrons) {
 
-            if (u.email.trim().equalsIgnoreCase(email.trim())
+            if (u.email.equalsIgnoreCase(email)
                     && u.password.equals(password)
-                    && u.role.equalsIgnoreCase("PATRON")) {
-
+                    && u.role.equals("PATRON")) {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -25,14 +23,12 @@ public class authServ {
 
         for (User u : db.librarians) {
 
-            if (u.email.trim().equalsIgnoreCase(email.trim())
+            if (u.email.equalsIgnoreCase(email)
                     && u.password.equals(password)
-                    && u.role.equalsIgnoreCase("LIBRARIAN")) {
-
+                    && u.role.equals("LIBRARIAN")) {
                 return true;
             }
         }
-
         return false;
     }
 }

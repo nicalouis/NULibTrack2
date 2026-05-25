@@ -6,6 +6,9 @@ import UIUtils.AppColor;
 
 import javax.swing.*;
 import java.awt.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class FinePanel extends JPanel {
 
@@ -16,7 +19,6 @@ public class FinePanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(AppColor.BACKGROUND);
 
-        // ================= HEADER =================
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
         header.setBackground(AppColor.BACKGROUND);
 
@@ -31,7 +33,6 @@ public class FinePanel extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
-        // ================= LIST =================
         list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setBackground(AppColor.BACKGROUND);
@@ -45,33 +46,70 @@ public class FinePanel extends JPanel {
 
         list.removeAll();
 
-        for (Book b : LibraryDB.get().borrowed) {
+        boolean found = false;
+
+        for (Book b : LibraryDB.get().getBorrowedBooks()) {
 
             if (b.isOverdue()) {
+
                 list.add(card(b));
-                list.add(Box.createVerticalStrut(12));
+                list.add(Box.createVerticalStrut(10));
+                found = true;
             }
+        }
+
+        if (!found) {
+            JLabel empty = new JLabel("No pending fines.");
+            empty.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+
+            JPanel wrap = new JPanel();
+            wrap.setBackground(AppColor.BACKGROUND);
+            wrap.add(empty);
+
+            list.add(wrap);
         }
 
         list.revalidate();
         list.repaint();
     }
 
-    // ================= FIXED CARD =================
+    // ================= FIXED FINE CALCULATION =================
+    private int calculateFine(Book b) {
+
+        try {
+            if (b.borrowDate == null) return 0;
+
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy");
+
+            Date borrow = sdf.parse(b.borrowDate);
+            Date now = new Date();
+
+            long diffMillis = now.getTime() - borrow.getTime();
+            long days = TimeUnit.MILLISECONDS.toDays(diffMillis);
+
+            int allowedDays = 7;
+
+            if (days <= allowedDays) return 0;
+
+            return (int) (days - allowedDays) * 10; // ₱10 per day
+
+        } catch (Exception e) {
+            return 0; // 🔥 IMPORTANT FIX: avoid fallback 50 bug
+        }
+    }
+
     private JPanel card(Book b) {
 
-        JPanel card = new JPanel(new BorderLayout(15, 10));
+        JPanel card = new JPanel(new BorderLayout());
         card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        card.setBorder(BorderFactory.createEmptyBorder(12,12,12,12));
 
-        // ================= IMAGE (LARGER & CLEAN) =================
         JLabel img = new JLabel(loadIcon(b.image, 85, 110));
 
         JPanel imgPanel = new JPanel();
         imgPanel.setBackground(Color.WHITE);
         imgPanel.add(img);
 
-        // ================= TEXT =================
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -79,27 +117,48 @@ public class FinePanel extends JPanel {
         JLabel title = new JLabel(b.title);
         title.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
-        JLabel due = new JLabel("Due Date: " + (b.dueDate != null ? b.dueDate : "N/A"));
-        due.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        int fineAmount = calculateFine(b);
 
-        JLabel fine = new JLabel("₱ " + b.getFine());
+        JLabel fine = new JLabel("₱ " + fineAmount);
         fine.setForeground(AppColor.DANGER);
         fine.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        text.add(title);
-        text.add(Box.createVerticalStrut(4));
-        text.add(due);
-        text.add(Box.createVerticalStrut(8));
-        text.add(fine);
+        JLabel status = new JLabel(
+                b.paymentRequested ? "PENDING APPROVAL" : "UNPAID"
+        );
 
-        // ================= BUTTON =================
-        JButton pay = new JButton("PAY");
-        pay.setBackground(AppColor.SUCCESS);
-        pay.setForeground(Color.WHITE);
-        pay.setFocusPainted(false);
+        status.setForeground(
+                b.paymentRequested ? Color.ORANGE : AppColor.DANGER
+        );
+
+        text.add(title);
+        text.add(fine);
+        text.add(status);
+
+        JButton pay = new JButton("PAY NOW");
 
         pay.addActionListener(e -> {
-            b.clearFine();
+
+            String[] methods = {"Online Payment", "Cash Payment"};
+
+            String selected = (String) JOptionPane.showInputDialog(
+                    this,
+                    "Select payment method:",
+                    "Payment",
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    methods,
+                    methods[0]
+            );
+
+            if (selected == null) return;
+
+            LibraryDB.get().requestPayment(b, selected);
+
+            JOptionPane.showMessageDialog(this,
+                    "Payment REQUEST SENT."
+            );
+
             load();
         });
 
@@ -107,7 +166,6 @@ public class FinePanel extends JPanel {
         btnPanel.setBackground(Color.WHITE);
         btnPanel.add(pay);
 
-        // ================= FINAL =================
         card.add(imgPanel, BorderLayout.WEST);
         card.add(text, BorderLayout.CENTER);
         card.add(btnPanel, BorderLayout.EAST);

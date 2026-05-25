@@ -3,6 +3,7 @@ package Services;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import javax.swing.JOptionPane;
 
 public class LibraryDB {
 
@@ -13,6 +14,7 @@ public class LibraryDB {
         return instance;
     }
 
+    // ================= DATABASE =================
     public ArrayList<Book> books = new ArrayList<>();
     public ArrayList<Book> borrowed = new ArrayList<>();
     public ArrayList<Book> reservations = new ArrayList<>();
@@ -20,6 +22,12 @@ public class LibraryDB {
 
     public ArrayList<User> patrons = new ArrayList<>();
     public ArrayList<User> librarians = new ArrayList<>();
+    public ArrayList<BorrowRecord> borrowRecords = new ArrayList<>();
+
+    // ================= TEST DATE =================
+    private String testDate() {
+        return "Jan 10, 2025";
+    }
 
     private String now() {
         return new SimpleDateFormat("MMM dd, yyyy").format(new Date());
@@ -36,68 +44,154 @@ public class LibraryDB {
         books.add(new Book("Basic Economics", "Thomas Sowell", "src/BS.jpg"));
     }
 
-    // ================= FIXED BORROW =================
+    // ================= AUTO UI REFRESH =================
+    private void triggerUI() {
+        try {
+            if (PatronPanel.CatalogPanel.instance != null) {
+                PatronPanel.CatalogPanel.instance.refresh();
+            }
+        } catch (Exception ignored) {}
+    }
+
+    // ================= BORROW =================
     public void borrow(Book b) {
 
         if (b == null) return;
+        if (b.borrowed) return;
+
+        if (borrowed.size() >= 3) {
+            JOptionPane.showMessageDialog(null,
+                    "Maximum borrow limit is 3 books only!");
+            return;
+        }
 
         books.remove(b);
         reservations.remove(b);
 
-        if (!borrowed.contains(b)) {
-            borrowed.add(b);
-        }
+        borrowed.add(b);
 
         b.borrowed = true;
-        b.borrowDate = now();
+        b.reserveDate = null;
+        b.returnDate = null;
+
+        b.borrowDate = testDate();
         b.dueDate = "7 days from " + b.borrowDate;
-        b.finePaid = false;
+
+        triggerUI();
     }
 
-    // ================= FIXED RETURN =================
+    // ================= RETURN (FIXED SNAPSHOT + NO NULL HISTORY) =================
     public void returnBook(Book b) {
 
         if (b == null) return;
+        if (!borrowed.contains(b)) return;
+
+        String savedBorrowDate = b.borrowDate;
+        String savedDueDate = b.dueDate;
+        String savedReturnDate = now();
 
         borrowed.remove(b);
-        books.add(b);
+        borrowRecords.removeIf(r -> r.book == b);
 
         b.borrowed = false;
-        b.returnDate = now();
+        b.borrowDate = null;
+        b.dueDate = null;
+        b.returnDate = savedReturnDate;
 
-        if (!history.contains(b)) {
-            history.add(b);
+        // 🔥 FIX: clean snapshot (NO NULL FIELDS)
+        Book snapshot = new Book(b.title, b.author, b.image);
+        snapshot.borrowed = false;
+        snapshot.borrowDate = savedBorrowDate;
+        snapshot.dueDate = savedDueDate;
+        snapshot.returnDate = savedReturnDate;
+
+        history.add(snapshot);
+
+        if (!books.contains(b)) {
+            books.add(b);
         }
+
+        reservations.remove(b);
+
+        triggerUI();
     }
 
+    // ================= RESERVE =================
     public void reserve(Book b) {
 
         if (b == null) return;
+        if (b.borrowed) return;
 
-        books.remove(b);
-
-        if (!reservations.contains(b)) {
-            reservations.add(b);
+        if (reservations.size() >= 3) {
+            JOptionPane.showMessageDialog(null,
+                    "Maximum reservation limit is 3 books only!");
+            return;
         }
 
-        b.reserveDate = now();
+        books.remove(b);
+        reservations.add(b);
+
+        b.reserveDate = testDate();
+
+        triggerUI();
     }
 
+    // ================= CANCEL RESERVE =================
     public void cancelReserve(Book b) {
 
         if (b == null) return;
 
         reservations.remove(b);
-        books.add(b);
+        b.reserveDate = null;
+
+        if (!b.borrowed && !books.contains(b)) {
+            books.add(b);
+        }
+
+        triggerUI();
+    }
+
+    // ================= PAYMENT =================
+    public void requestPayment(Book b, String method) {
+        b.paymentRequested = true;
+        b.paymentMethod = method;
+        b.paymentConfirmed = false;
+    }
+
+    public void confirmPayment(Book b) {
+        if (b.paymentRequested && !b.paymentConfirmed) {
+            b.paymentConfirmed = true;
+            b.paymentRequested = false;
+            b.finePaid = true;
+        }
+    }
+
+    public ArrayList<Book> getBorrowedBooks() {
+        return borrowed;
+    }
+
+    // ================= CLASSES =================
+    public static class BorrowRecord {
+        public String email;
+        public Book book;
+
+        public BorrowRecord(String email, Book book) {
+            this.email = email;
+            this.book = book;
+        }
     }
 
     public static class Book {
+
         public String title;
         public String author;
         public String image;
 
         public boolean borrowed = false;
         public boolean finePaid = false;
+        public boolean paymentRequested = false;
+        public boolean paymentConfirmed = false;
+        public String paymentMethod;
 
         public String borrowDate;
         public String returnDate;
@@ -110,16 +204,30 @@ public class LibraryDB {
             image = i;
         }
 
-        public boolean isOverdue() {
-            return borrowed;
-        }
-
         public int getFine() {
-            return borrowed ? (finePaid ? 0 : 50) : 0;
+            try {
+                if (borrowDate == null) return 0;
+
+                SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy");
+                Date borrow = sdf.parse(borrowDate);
+                Date now = new Date();
+
+                long diff = now.getTime() - borrow.getTime();
+                long days = diff / (1000 * 60 * 60 * 24);
+
+                int allowed = 7;
+
+                if (days <= allowed) return 0;
+
+                return (int) (days - allowed) * 10;
+
+            } catch (Exception e) {
+                return 0;
+            }
         }
 
-        public void clearFine() {
-            finePaid = true;
+        public boolean isOverdue() {
+            return getFine() > 0;
         }
     }
 

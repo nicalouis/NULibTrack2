@@ -6,19 +6,21 @@ import UIUtils.AppColor;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.ArrayList;
 
 public class CatalogPanel extends JPanel {
 
     private JPanel list;
     private JTextField searchField;
 
+    public static CatalogPanel instance;
+
     public CatalogPanel() {
+
+        instance = this;
 
         setLayout(new BorderLayout());
         setBackground(AppColor.BACKGROUND);
 
-        // ================= HEADER =================
         JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
         header.setBackground(AppColor.BACKGROUND);
 
@@ -31,6 +33,7 @@ public class CatalogPanel extends JPanel {
 
         JButton searchBtn = new JButton("SEARCH");
         searchBtn.setBackground(AppColor.SECONDARY);
+        searchBtn.setFocusPainted(false);
 
         header.add(icon);
         header.add(title);
@@ -39,14 +42,12 @@ public class CatalogPanel extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
-        // ================= LIST =================
         list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setBackground(AppColor.BACKGROUND);
 
         add(new JScrollPane(list), BorderLayout.CENTER);
 
-        // ================= LIVE SEARCH =================
         searchField.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent e) {
                 load(searchField.getText());
@@ -58,44 +59,73 @@ public class CatalogPanel extends JPanel {
         load("");
     }
 
-    // ================= LOAD =================
+    // ================= LOAD (🔥 FIXED FINAL STATE SYSTEM) =================
     public void load(String keyword) {
 
-        list.removeAll();
+    list.removeAll();
 
-        ArrayList<Book> books = LibraryDB.get().books;
+    LibraryDB db = LibraryDB.get();
 
-        for (Book b : books) {
-
-            if (keyword == null || keyword.isEmpty()
-                    || b.title.toLowerCase().startsWith(keyword.toLowerCase())
-                    || b.author.toLowerCase().startsWith(keyword.toLowerCase())) {
-
-                list.add(card(b));
-                list.add(Box.createVerticalStrut(12));
-            }
-        }
-
-        list.revalidate();
-        list.repaint();
+    for (Book b : db.books) {
+        addIfVisible(b, keyword, db);
     }
 
-    // ================= CARD (UPDATED UI ONLY) =================
+    for (Book b : db.borrowed) {
+        addIfVisible(b, keyword, db);
+    }
+
+    for (Book b : db.reservations) {
+        addIfVisible(b, keyword, db);
+    }
+
+    list.revalidate();
+    list.repaint();
+}
+
+private void addIfVisible(Book b, String keyword, LibraryDB db) {
+
+    // 🔥 KEY FIX: if borrowed or reserved, DON'T show in catalog
+    if (db.borrowed.contains(b) || db.reservations.contains(b)) {
+        return;
+    }
+
+    boolean match =
+            keyword == null || keyword.isEmpty()
+            || b.title.toLowerCase().contains(keyword.toLowerCase())
+            || b.author.toLowerCase().contains(keyword.toLowerCase());
+
+    if (match) {
+        list.add(card(b));
+        list.add(Box.createVerticalStrut(12));
+    }
+}
+
+    private void addIfMatch(Book b, String keyword) {
+
+        boolean match =
+                keyword == null || keyword.isEmpty()
+                || b.title.toLowerCase().contains(keyword.toLowerCase())
+                || b.author.toLowerCase().contains(keyword.toLowerCase());
+
+        if (match) {
+            list.add(card(b));
+            list.add(Box.createVerticalStrut(12));
+        }
+    }
+
+    // ================= CARD =================
     private JPanel card(Book b) {
 
         JPanel card = new JPanel(new BorderLayout(15, 10));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // ================= IMAGE (BIGGER + SPACED) =================
         JLabel img = new JLabel(loadIcon(b.image, 100, 130));
 
         JPanel imgPanel = new JPanel();
         imgPanel.setBackground(Color.WHITE);
-        imgPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 20));
         imgPanel.add(img);
 
-        // ================= TEXT =================
         JLabel title = new JLabel(b.title);
         title.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
@@ -105,11 +135,27 @@ public class CatalogPanel extends JPanel {
 
         JLabel dateInfo = new JLabel();
 
-        if (b.borrowDate != null) {
-            dateInfo.setText("Borrowed: " + b.borrowDate + " | Due: " + b.dueDate);
-        } else if (b.reserveDate != null) {
-            dateInfo.setText("Reserved: " + b.reserveDate);
+        LibraryDB db = LibraryDB.get();
+
+        // 🔥 FIXED STATE DISPLAY (NOW RETURNS PROPERLY)
+        if (db.borrowed.contains(b) || b.borrowed) {
+
+            dateInfo.setText(
+                    b.dueDate != null
+                            ? "Borrowed • Due: " + b.dueDate
+                            : "Borrowed"
+            );
+
+        } else if (db.reservations.contains(b)) {
+
+            dateInfo.setText(
+                    b.reserveDate != null
+                            ? "Reserved: " + b.reserveDate
+                            : "Reserved"
+            );
+
         } else {
+
             dateInfo.setText("Available");
         }
 
@@ -120,17 +166,12 @@ public class CatalogPanel extends JPanel {
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
 
-        title.setAlignmentX(Component.LEFT_ALIGNMENT);
-        author.setAlignmentX(Component.LEFT_ALIGNMENT);
-        dateInfo.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         text.add(title);
         text.add(Box.createVerticalStrut(5));
         text.add(author);
         text.add(Box.createVerticalStrut(10));
         text.add(dateInfo);
 
-        // ================= BUTTONS =================
         JButton borrow = new JButton("BORROW");
         JButton reserve = new JButton("RESERVE");
 
@@ -138,8 +179,8 @@ public class CatalogPanel extends JPanel {
         reserve.setBackground(AppColor.INFO);
         reserve.setForeground(Color.WHITE);
 
-        borrow.setMaximumSize(new Dimension(120, 35));
-        reserve.setMaximumSize(new Dimension(120, 35));
+        borrow.setFocusPainted(false);
+        reserve.setFocusPainted(false);
 
         JPanel buttons = new JPanel();
         buttons.setLayout(new BoxLayout(buttons, BoxLayout.Y_AXIS));
@@ -149,18 +190,16 @@ public class CatalogPanel extends JPanel {
         buttons.add(Box.createVerticalStrut(10));
         buttons.add(reserve);
 
-        // ================= ACTIONS =================
         borrow.addActionListener(e -> {
             LibraryDB.get().borrow(b);
-            load(searchField.getText());
+            refresh();
         });
 
         reserve.addActionListener(e -> {
             LibraryDB.get().reserve(b);
-            load(searchField.getText());
+            refresh();
         });
 
-        // ================= FINAL =================
         card.add(imgPanel, BorderLayout.WEST);
         card.add(text, BorderLayout.CENTER);
         card.add(buttons, BorderLayout.EAST);
@@ -168,7 +207,14 @@ public class CatalogPanel extends JPanel {
         return card;
     }
 
-    // ================= IMAGE =================
+    public void refresh() {
+        load(searchField.getText());
+    }
+
+    public static void forceRefresh() {
+        if (instance != null) instance.refresh();
+    }
+
     private ImageIcon loadIcon(String path, int w, int h) {
         ImageIcon icon = new ImageIcon(path);
         Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);

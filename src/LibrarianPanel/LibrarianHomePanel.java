@@ -1,5 +1,6 @@
 package LibrarianPanel;
 
+import Services.LibraryDB;
 import UIUtils.AppColor;
 
 import javax.swing.*;
@@ -7,17 +8,24 @@ import java.awt.*;
 
 public class LibrarianHomePanel extends JPanel {
 
+    private JLabel booksValue;
+    private JLabel usersValue;
+    private JLabel finesValue;
+
     public LibrarianHomePanel() {
 
         setLayout(new GridLayout(1, 3, 20, 20));
         setBackground(AppColor.BACKGROUND);
 
-        add(card("Books", "120", AppColor.INFO));
-        add(card("Users", "45", AppColor.SUCCESS));
-        add(card("Fines", "₱1,250", AppColor.DANGER));
+        add(card("Books", AppColor.INFO, 1));
+        add(card("Users", AppColor.SUCCESS, 2));
+        add(card("Fines", AppColor.DANGER, 3));
+
+        updateData();
     }
 
-    private JPanel card(String title, String value, Color color) {
+    // ================= CARD =================
+    private JPanel card(String title, Color color, int type) {
 
         JPanel c = new JPanel();
         c.setLayout(new BorderLayout());
@@ -28,12 +36,45 @@ public class LibrarianHomePanel extends JPanel {
         t.setFont(new Font("Segoe UI", Font.BOLD, 16));
         t.setForeground(color);
 
-        JLabel v = new JLabel(value);
+        JLabel v = new JLabel("0");
         v.setFont(new Font("Segoe UI", Font.BOLD, 30));
+
+        // store references for updates
+        if (type == 1) booksValue = v;
+        if (type == 2) usersValue = v;
+        if (type == 3) finesValue = v;
 
         c.add(t, BorderLayout.NORTH);
         c.add(v, BorderLayout.CENTER);
 
         return c;
+    }
+
+    // ================= UPDATE DATA =================
+    public void updateData() {
+
+        LibraryDB db = LibraryDB.get();
+
+        if (booksValue != null) {
+            booksValue.setText(String.valueOf(db.books.size()));
+        }
+
+        if (usersValue != null) {
+            usersValue.setText(String.valueOf(db.patrons.size() + db.librarians.size()));
+        }
+
+        if (finesValue != null) {
+
+            int totalFines = 0;
+
+            for (LibraryDB.Book b : db.borrowed) {
+                totalFines += b.getFine();
+            }
+
+            finesValue.setText("₱" + totalFines);
+        }
+
+        revalidate();
+        repaint();
     }
 }

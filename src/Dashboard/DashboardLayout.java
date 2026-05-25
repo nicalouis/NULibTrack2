@@ -1,7 +1,6 @@
 package Dashboard;
 
 import UIUtils.AppColor;
-
 import javax.swing.*;
 import java.awt.*;
 
@@ -9,6 +8,8 @@ public class DashboardLayout extends JFrame {
 
     protected JPanel sidebar;
     protected JPanel contentPanel;
+
+    protected JPanel sidebarBox;
 
     private JButton activeButton;
 
@@ -72,32 +73,35 @@ public class DashboardLayout extends JFrame {
 
         topbar.add(center, BorderLayout.CENTER);
 
-        // ================= SIDEBAR (BOX UI IMPROVED) =================
+        // ================= SIDEBAR =================
         sidebar = new JPanel();
         sidebar.setLayout(new BorderLayout());
         sidebar.setBackground(AppColor.SIDEBAR_BG);
         sidebar.setBorder(BorderFactory.createEmptyBorder(18, 12, 18, 12));
         sidebar.setPreferredSize(new Dimension(260, 700));
 
-        // ===== BOX WRAPPER (NEW CARD LOOK) =====
-        JPanel box = new JPanel();
-        box.setLayout(new GridLayout(0, 1, 10, 10));
-        box.setBackground(new Color(25, 40, 75)); // darker card contrast
-        box.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(255, 204, 0, 80), 1),
-                BorderFactory.createEmptyBorder(15, 12, 15, 12)
-        ));
+        // ================= SCROLLABLE BOX (FIXED) =================
+       // ================= SCROLLABLE BOX (FIXED) =================
+sidebarBox = new JPanel();
 
-        // ===== MENU TITLE INSIDE BOX =====
+sidebarBox.setLayout(new BoxLayout(sidebarBox, BoxLayout.Y_AXIS));
+
+sidebarBox.setBackground(new Color(25, 40, 75));
+
+sidebarBox.setBorder(BorderFactory.createCompoundBorder(
+        BorderFactory.createLineBorder(new Color(255, 204, 0, 80), 1),
+        BorderFactory.createEmptyBorder(15, 12, 15, 12)
+));
+
         JLabel menu = new JLabel("PATRON MENU", SwingConstants.CENTER);
         menu.setForeground(Color.WHITE);
         menu.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        menu.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        box.add(menu);
-        box.add(Box.createVerticalStrut(5));
+        sidebarBox.add(menu);
+        sidebarBox.add(Box.createVerticalStrut(10));
 
-        // expose box as sidebar container
-        sidebar.add(box, BorderLayout.CENTER);
+        sidebar.add(sidebarBox, BorderLayout.CENTER);
 
         // ================= CONTENT =================
         contentPanel = new JPanel(new CardLayout());
@@ -121,6 +125,8 @@ public class DashboardLayout extends JFrame {
         btn.setFocusPainted(false);
         btn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btn.setHorizontalAlignment(SwingConstants.LEFT);
+
+        btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
 
         btn.setBackground(new Color(35, 55, 95));
         btn.setForeground(Color.WHITE);

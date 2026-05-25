@@ -1,6 +1,8 @@
 package PatronPanel;
 
 import Dashboard.DashboardLayout;
+import LoginUI.LoginFrame;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -64,6 +66,10 @@ public class PatronDashboard extends DashboardLayout {
         JButton finesBtn = createBtn("Fines");
         JButton accountBtn = createBtn("My Account");
 
+        // 🔥 NEW LOGOUT BUTTON
+        JButton logoutBtn = createBtn("Logout");
+        logoutBtn.setBackground(new Color(200, 50, 50));
+
         // ================= ACTIONS =================
         catalogBtn.addActionListener(e -> {
             switchPanel("catalog");
@@ -97,7 +103,6 @@ public class PatronDashboard extends DashboardLayout {
         accountBtn.addActionListener(e -> {
             switchPanel("account");
 
-            // 🔥 FIX: force UI sync with DB (THIS WAS MISSING)
             SwingUtilities.invokeLater(() -> {
                 accountPanel.refresh();
             });
@@ -105,15 +110,28 @@ public class PatronDashboard extends DashboardLayout {
             setActive(accountBtn);
         });
 
+        // ================= LOGOUT ACTION =================
+        logoutBtn.addActionListener(e -> logout());
+
+        // ================= ADD TO SIDEBAR =================
         sidebar.add(catalogBtn);
         sidebar.add(borrowedBtn);
         sidebar.add(reserveBtn);
         sidebar.add(historyBtn);
         sidebar.add(finesBtn);
         sidebar.add(accountBtn);
+
+        sidebar.add(Box.createVerticalStrut(20)); // spacing
+        sidebar.add(logoutBtn);
     }
 
-    // ================= SAFE BUTTON STYLE =================
+    // ================= LOGOUT =================
+    private void logout() {
+        new LoginFrame().setVisible(true);
+        dispose();
+    }
+
+    // ================= BUTTON STYLE =================
     private JButton createBtn(String text) {
 
         JButton btn = new JButton(text);

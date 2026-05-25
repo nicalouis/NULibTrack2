@@ -30,43 +30,68 @@ public class BorrowedPanel extends JPanel {
 
         add(header, BorderLayout.NORTH);
 
+        // ================= LIST =================
         list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setBackground(AppColor.BACKGROUND);
 
-        add(new JScrollPane(list), BorderLayout.CENTER);
+        JScrollPane scroll = new JScrollPane(list);
+        scroll.setBorder(null);
+        scroll.getViewport().setBackground(AppColor.BACKGROUND);
+
+        add(scroll, BorderLayout.CENTER);
 
         refresh();
     }
 
+    // ================= REFRESH =================
     public void refresh() {
 
         list.removeAll();
 
-        for (Book b : LibraryDB.get().borrowed) {
-            list.add(card(b));
-            list.add(Box.createVerticalStrut(12));
+        LibraryDB db = LibraryDB.get();
+
+        // ✔ FIX: only show valid borrowed books
+        for (Book b : db.getBorrowedBooks()) {
+
+            if (b != null && b.borrowed) {
+                list.add(card(b));
+                list.add(Box.createVerticalStrut(12));
+            }
+        }
+
+        // empty state
+        if (list.getComponentCount() == 0) {
+
+            JLabel empty = new JLabel("No borrowed books yet.");
+            empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            JPanel wrap = new JPanel();
+            wrap.setBackground(AppColor.BACKGROUND);
+            wrap.add(empty);
+
+            list.add(wrap);
         }
 
         list.revalidate();
         list.repaint();
     }
 
-    // ================= CARD (ENHANCED UI) =================
+    // ================= CARD =================
     private JPanel card(Book b) {
 
         JPanel p = new JPanel(new BorderLayout(15, 10));
         p.setBackground(Color.WHITE);
         p.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-        // IMAGE
+        // ================= IMAGE =================
         JLabel img = new JLabel(loadIcon(b.image, 80, 100));
 
         JPanel imgPanel = new JPanel();
         imgPanel.setBackground(Color.WHITE);
         imgPanel.add(img);
 
-        // TEXT
+        // ================= TEXT =================
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -74,12 +99,12 @@ public class BorrowedPanel extends JPanel {
         JLabel title = new JLabel(b.title);
         title.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
-        JLabel dateInfo = new JLabel(
+        String borrowInfo =
                 (b.borrowDate != null)
                         ? "Borrowed: " + b.borrowDate + " | Due: " + b.dueDate
-                        : "No date info"
-        );
+                        : "No date info";
 
+        JLabel dateInfo = new JLabel(borrowInfo);
         dateInfo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         dateInfo.setForeground(Color.GRAY);
 
@@ -87,13 +112,19 @@ public class BorrowedPanel extends JPanel {
         text.add(Box.createVerticalStrut(5));
         text.add(dateInfo);
 
-        // BUTTON
+        // ================= BUTTON =================
         JButton returnBtn = new JButton("RETURN");
         returnBtn.setBackground(AppColor.SECONDARY);
         returnBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        returnBtn.setFocusPainted(false);
 
         returnBtn.addActionListener(e -> {
-            LibraryDB.get().returnBook(b);
+
+            LibraryDB db = LibraryDB.get();
+
+            db.returnBook(b);
+
+            // IMPORTANT FIX: refresh UI immediately
             refresh();
         });
 
@@ -104,7 +135,9 @@ public class BorrowedPanel extends JPanel {
         return p;
     }
 
+    // ================= IMAGE LOADER =================
     private ImageIcon loadIcon(String path, int w, int h) {
+
         ImageIcon icon = new ImageIcon(path);
         Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
