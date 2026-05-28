@@ -3,159 +3,226 @@ package PatronPanel;
 import Services.LibraryDB;
 import Services.LibraryDB.Book;
 import UIUtils.AppColor;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+
 
 public class ReservationPanel extends JPanel {
 
-    private JPanel list;
 
-    public ReservationPanel() {
+   private JPanel list;
 
-        setLayout(new BorderLayout());
-        setBackground(AppColor.BACKGROUND);
 
-        // ================= HEADER =================
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        header.setBackground(AppColor.BACKGROUND);
+   public ReservationPanel() {
 
-        JLabel icon = new JLabel(loadIcon("src/reservation.png", 40, 40));
 
-        JLabel title = new JLabel("Reservations");
-        title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+       setLayout(new BorderLayout());
+       setBackground(AppColor.BACKGROUND);
 
-        header.add(icon);
-        header.add(title);
 
-        add(header, BorderLayout.NORTH);
+       // ================= HEADER =================
+       JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+       header.setBackground(AppColor.BACKGROUND);
 
-        // ================= LIST =================
-        list = new JPanel();
-        list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
-        list.setBackground(AppColor.BACKGROUND);
 
-        JScrollPane scroll = new JScrollPane(list);
-        scroll.setBorder(null);
-        scroll.getViewport().setBackground(AppColor.BACKGROUND);
+       JLabel icon = new JLabel(loadIcon("src/reservation.png", 40, 40));
 
-        add(scroll, BorderLayout.CENTER);
 
-        refresh();
-    }
+       JLabel title = new JLabel("Reservations");
+       title.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
-    // ================= REFRESH =================
-    public void refresh() {
 
-        list.removeAll();
+       header.add(icon);
+       header.add(title);
 
-        LibraryDB db = LibraryDB.get();
 
-        for (Book b : db.reservations) {
+       add(header, BorderLayout.NORTH);
 
-            if (b != null) {
-                list.add(card(b));
-                list.add(Box.createVerticalStrut(12));
-            }
-        }
 
-        if (db.reservations.isEmpty()) {
+       // ================= LIST =================
+       list = new JPanel();
+       list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
+       list.setBackground(AppColor.BACKGROUND);
 
-            JLabel empty = new JLabel("No reservations yet.");
-            empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-            JPanel wrap = new JPanel();
-            wrap.setBackground(AppColor.BACKGROUND);
-            wrap.add(empty);
+       JScrollPane scroll = new JScrollPane(list);
+       scroll.setBorder(null);
+       scroll.getViewport().setBackground(AppColor.BACKGROUND);
 
-            list.add(wrap);
-        }
 
-        list.revalidate();
-        list.repaint();
-    }
+       add(scroll, BorderLayout.CENTER);
 
-    // ================= CARD =================
-    private JPanel card(Book b) {
 
-        JPanel card = new JPanel(new BorderLayout(15, 10));
-        card.setBackground(Color.WHITE);
-        card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+       refresh();
+   }
 
-        JLabel img = new JLabel(loadIcon(b.image, 90, 110));
 
-        JPanel imgPanel = new JPanel();
-        imgPanel.setBackground(Color.WHITE);
-        imgPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 15));
-        imgPanel.add(img);
+   // ================= REFRESH =================
+   public void refresh() {
 
-        JPanel text = new JPanel();
-        text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
-        text.setBackground(Color.WHITE);
 
-        JLabel title = new JLabel(b.title);
-        title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+       list.removeAll();
 
-        JLabel author = new JLabel("by " + b.author);
-        author.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        author.setForeground(Color.DARK_GRAY);
 
-        // ================= SAFE DATE DISPLAY =================
-        String reserveDate =
-                (b.reserveDate != null && !b.reserveDate.isEmpty())
-                        ? b.reserveDate
-                        : "Recently Reserved";
+       LibraryDB db = LibraryDB.get();
 
-        JLabel date = new JLabel("Reserved: " + reserveDate);
-        date.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        date.setForeground(AppColor.INFO);
 
-        text.add(title);
-        text.add(Box.createVerticalStrut(5));
-        text.add(author);
-        text.add(Box.createVerticalStrut(8));
-        text.add(date);
+       for (Book b : db.reservations) {
 
-        JButton cancel = new JButton("CANCEL");
-        cancel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        cancel.setFocusPainted(false);
 
-        cancel.setBackground(AppColor.DANGER);
-        cancel.setForeground(Color.WHITE);
-        cancel.setPreferredSize(new Dimension(110, 35));
+           if (b != null) {
+               list.add(card(b));
+               list.add(Box.createVerticalStrut(12));
+           }
+       }
 
-        cancel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        cancel.addActionListener(e -> {
+       if (db.reservations.isEmpty()) {
 
-            LibraryDB db = LibraryDB.get();
 
-            db.cancelReserve(b);
+           JLabel empty = new JLabel("No reservations yet.");
+           empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
-            refresh();
 
-            // 🔥 keep UI synced
-            if (PatronPanel.CatalogPanel.instance != null) {
-                PatronPanel.CatalogPanel.instance.refresh();
-            }
-        });
+           JPanel wrap = new JPanel();
+           wrap.setBackground(AppColor.BACKGROUND);
+           wrap.add(empty);
 
-        JPanel btnPanel = new JPanel();
-        btnPanel.setBackground(Color.WHITE);
-        btnPanel.add(cancel);
 
-        card.add(imgPanel, BorderLayout.WEST);
-        card.add(text, BorderLayout.CENTER);
-        card.add(btnPanel, BorderLayout.EAST);
+           list.add(wrap);
+       }
 
-        return card;
-    }
 
-    // ================= IMAGE LOADER =================
-    private ImageIcon loadIcon(String path, int w, int h) {
+       list.revalidate();
+       list.repaint();
+   }
 
-        ImageIcon icon = new ImageIcon(path);
-        Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
-        return new ImageIcon(img);
-    }
+
+   // ================= CARD =================
+   private JPanel card(Book b) {
+
+
+       JPanel card = new JPanel(new BorderLayout(15, 10));
+       card.setBackground(Color.WHITE);
+       card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+
+       JLabel img = new JLabel(loadIcon(b.image, 90, 110));
+
+
+       JPanel imgPanel = new JPanel();
+       imgPanel.setBackground(Color.WHITE);
+       imgPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 15));
+       imgPanel.add(img);
+
+
+       JPanel text = new JPanel();
+       text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
+       text.setBackground(Color.WHITE);
+
+
+       JLabel title = new JLabel(b.title);
+       title.setFont(new Font("Segoe UI", Font.BOLD, 16));
+
+
+       JLabel author = new JLabel("by " + b.author);
+       author.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+       author.setForeground(Color.DARK_GRAY);
+
+
+       // ================= SAFE DATE DISPLAY =================
+       String reserveDate =
+               (b.reserveDate != null && !b.reserveDate.isEmpty())
+                       ? b.reserveDate
+                       : "Recently Reserved";
+
+
+       JLabel date = new JLabel("Reserved: " + reserveDate);
+       date.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+       date.setForeground(AppColor.INFO);
+
+
+       text.add(title);
+       text.add(Box.createVerticalStrut(5));
+       text.add(author);
+       text.add(Box.createVerticalStrut(8));
+       text.add(date);
+
+
+       // 🔥 SHOW PICKUP DEADLINE IF CONFIRMED
+       if (b.reservationDeadline != null) {
+           JLabel deadline = new JLabel("⏰ Pickup by: " + b.reservationDeadline);
+           deadline.setFont(new Font("Segoe UI", Font.BOLD, 11));
+          
+           try {
+               java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("MMM dd, yyyy");
+               java.util.Date deadlineDate = sdf.parse(b.reservationDeadline);
+               if (new java.util.Date().after(deadlineDate)) {
+                   deadline.setForeground(new Color(220, 38, 38));  // RED for expired
+               } else {
+                   deadline.setForeground(new Color(34, 197, 94));  // GREEN for active
+               }
+           } catch (Exception e) {
+               deadline.setForeground(AppColor.INFO);
+           }
+          
+           text.add(Box.createVerticalStrut(3));
+           text.add(deadline);
+       }
+
+
+       JButton cancel = new JButton("CANCEL");
+       cancel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+       cancel.setFocusPainted(false);
+
+
+       cancel.setBackground(AppColor.DANGER);
+       cancel.setForeground(Color.WHITE);
+       cancel.setPreferredSize(new Dimension(110, 35));
+
+
+       cancel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+
+       cancel.addActionListener(e -> {
+
+
+           LibraryDB db = LibraryDB.get();
+
+
+           db.cancelReserve(b);
+
+
+           refresh();
+
+
+           // 🔥 keep UI synced
+           if (PatronPanel.CatalogPanel.instance != null) {
+               PatronPanel.CatalogPanel.instance.refresh();
+           }
+       });
+
+
+       JPanel btnPanel = new JPanel();
+       btnPanel.setBackground(Color.WHITE);
+       btnPanel.add(cancel);
+
+
+       card.add(imgPanel, BorderLayout.WEST);
+       card.add(text, BorderLayout.CENTER);
+       card.add(btnPanel, BorderLayout.EAST);
+
+
+       return card;
+   }
+
+
+   // ================= IMAGE LOADER =================
+   private ImageIcon loadIcon(String path, int w, int h) {
+
+
+       ImageIcon icon = new ImageIcon(path);
+       Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+       return new ImageIcon(img);
+   }
 }

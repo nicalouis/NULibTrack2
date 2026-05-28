@@ -1,12 +1,16 @@
 package PatronPanel;
 
+
 import Dashboard.DashboardLayout;
 import LoginUI.LoginFrame;
+
 
 import javax.swing.*;
 import java.awt.*;
 
+
 public class PatronDashboard extends DashboardLayout {
+
 
     private CatalogPanel catalogPanel;
     private BorrowedPanel borrowedPanel;
@@ -15,55 +19,72 @@ public class PatronDashboard extends DashboardLayout {
     private FinePanel finePanel;
     private MyAccountPanel accountPanel;
 
+
     private NotificationPanel notificationPanel;
+
 
     private JButton activeButton;
 
+
     public PatronDashboard() {
 
+
         super();
+
 
         initPanels();
         initSidebar();
         openDefault();
     }
 
+
     // ================= PANELS =================
     private void initPanels() {
+
 
         catalogPanel = new CatalogPanel();
         borrowedPanel = new BorrowedPanel();
         reservationPanel = new ReservationPanel();
         historyPanel = new HistoryPanel();
         finePanel = new FinePanel();
+        notificationPanel = new NotificationPanel();
         accountPanel = new MyAccountPanel();
 
-        notificationPanel = new NotificationPanel();
+
+
 
         contentPanel.add(catalogPanel, "catalog");
         contentPanel.add(borrowedPanel, "borrowed");
         contentPanel.add(reservationPanel, "reservation");
         contentPanel.add(historyPanel, "history");
         contentPanel.add(finePanel, "fines");
+        contentPanel.add(notificationPanel, "notifications");
         contentPanel.add(accountPanel, "account");
 
-        contentPanel.add(notificationPanel, "notifications");
+
+       
     }
+
 
     // ================= SIDEBAR =================
     private void initSidebar() {
 
+
         sidebar.removeAll();
         sidebar.setLayout(new GridLayout(0, 1, 8, 8));
 
+
         sidebar.setBackground(new Color(18, 30, 60));
         sidebar.setBorder(BorderFactory.createEmptyBorder(20, 15, 20, 15));
+
 
         JLabel menu = new JLabel("PATRON MENU", SwingConstants.CENTER);
         menu.setForeground(Color.WHITE);
         menu.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
+
         sidebar.add(menu);
+
 
         JButton catalogBtn = createBtn("Catalog");
         JButton borrowedBtn = createBtn("Borrowed");
@@ -74,14 +95,18 @@ public class PatronDashboard extends DashboardLayout {
         JButton notifBtn = createBtn("Notifications");
         JButton logoutBtn = createBtn("Logout");
 
+
         logoutBtn.setBackground(new Color(200, 50, 50));
 
+
         // ================= ACTIONS =================
+
 
         catalogBtn.addActionListener(e -> {
             switchPanel("catalog");
             setActive(catalogBtn);
         });
+
 
         borrowedBtn.addActionListener(e -> {
             switchPanel("borrowed");
@@ -89,11 +114,13 @@ public class PatronDashboard extends DashboardLayout {
             setActive(borrowedBtn);
         });
 
+
         reserveBtn.addActionListener(e -> {
             switchPanel("reservation");
             reservationPanel.refresh();
             setActive(reserveBtn);
         });
+
 
         historyBtn.addActionListener(e -> {
             switchPanel("history");
@@ -101,29 +128,40 @@ public class PatronDashboard extends DashboardLayout {
             setActive(historyBtn);
         });
 
+
         finesBtn.addActionListener(e -> {
             switchPanel("fines");
             finePanel.load();
             setActive(finesBtn);
         });
 
-        accountBtn.addActionListener(e -> {
-            switchPanel("account");
-            SwingUtilities.invokeLater(accountPanel::refresh);
-            setActive(accountBtn);
-        });
 
         // ================= NOTIFICATIONS =================
         notifBtn.addActionListener(e -> {
             switchPanel("notifications");
 
+
             // 🔥 IMPORTANT FIX: always refresh notifications
             notificationPanel.refresh();
+
 
             setActive(notifBtn);
         });
 
+
+         accountBtn.addActionListener(e -> {
+            switchPanel("account");
+            SwingUtilities.invokeLater(accountPanel::refresh);
+            setActive(accountBtn);
+        });
+
+
         logoutBtn.addActionListener(e -> logout());
+
+
+
+
+
 
         // ================= ADD TO SIDEBAR =================
         sidebar.add(catalogBtn);
@@ -131,12 +169,15 @@ public class PatronDashboard extends DashboardLayout {
         sidebar.add(reserveBtn);
         sidebar.add(historyBtn);
         sidebar.add(finesBtn);
-        sidebar.add(accountBtn);
         sidebar.add(notifBtn);
+        sidebar.add(accountBtn);
+       
+
 
         sidebar.add(Box.createVerticalStrut(20));
         sidebar.add(logoutBtn);
     }
+
 
     // ================= LOGOUT =================
     private void logout() {
@@ -144,43 +185,55 @@ public class PatronDashboard extends DashboardLayout {
         dispose();
     }
 
+
     // ================= BUTTON STYLE =================
     private JButton createBtn(String text) {
 
+
         JButton btn = new JButton(text);
+
 
         btn.setFocusPainted(false);
         btn.setBorderPainted(true);
         btn.setOpaque(true);
 
+
         btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
 
         btn.setBackground(new Color(25, 40, 75));
         btn.setForeground(Color.WHITE);
+
 
         btn.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(255, 204, 0), 1),
                 BorderFactory.createEmptyBorder(10, 12, 10, 12)
         ));
 
+
         return btn;
     }
 
+
     // ================= ACTIVE BUTTON =================
     private void setActive(JButton btn) {
+
 
         if (activeButton != null) {
             activeButton.setBackground(new Color(25, 40, 75));
             activeButton.setForeground(Color.WHITE);
         }
 
+
         activeButton = btn;
+
 
         if (activeButton != null) {
             activeButton.setBackground(new Color(255, 204, 0));
             activeButton.setForeground(Color.BLACK);
         }
     }
+
 
     // ================= DEFAULT =================
     private void openDefault() {
