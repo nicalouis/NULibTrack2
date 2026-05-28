@@ -48,7 +48,7 @@ public class BorrowReturnPanel extends JPanel {
                 return;
             }
 
-            // 🔥 FIX: global borrow size check removed (it was wrong)
+            // global borrow size check
             // Borrow limit should be per user, NOT system-wide
 
             Book foundBook = null;

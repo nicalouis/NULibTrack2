@@ -31,8 +31,9 @@ public class NotificationPanel extends JPanel {
 
         LibraryDB db = LibraryDB.get();
 
-        // 🔥 SAFE NULL CHECK (ADDED)
-        if (db == null || db.getBorrowedBooks() == null) {
+        // ================= SAFE CHECK =================
+        if (db == null) {
+
             container.add(createNotification(
                     "No data available",
                     UIManager.getIcon("OptionPane.informationIcon"),
@@ -46,35 +47,100 @@ public class NotificationPanel extends JPanel {
 
         boolean hasNotif = false;
 
-        // ================= OVERDUE + BORROWED =================
-        for (Book b : db.getBorrowedBooks()) {
+        // ======================================================
+        // GENERAL NOTIFICATIONS
+        // (Borrowed, Reserved, Returned, Available, etc.)
+        // ======================================================
 
-            if (b == null) continue; // 🔥 SAFE CHECK ADDED
+        if (db.notifications != null && !db.notifications.isEmpty()) {
 
-            if (b.borrowed) {
+            for (String notif : db.notifications) {
 
-                if (!b.finePaid) {
+                if (notif == null) continue;
 
-                    container.add(createNotification(
-                            "Overdue / Fine: " + b.title + " (₱" + b.getFine() + ")",
-                            UIManager.getIcon("OptionPane.errorIcon"),
-                            new Color(220, 38, 38)
-                    ));
+                Icon icon;
+                Color color;
 
-                    hasNotif = true;
+                // ================= COLORS =================
+                if (notif.contains("BORROWED")
+                        || notif.contains("Borrowed")) {
+
+                    icon = UIManager.getIcon("OptionPane.informationIcon");
+                    color = new Color(37, 99, 235);
+
+                } else if (notif.contains("RESERVED")
+                        || notif.contains("Reserved")) {
+
+                    icon = UIManager.getIcon("OptionPane.questionIcon");
+                    color = new Color(234, 179, 8);
+
+                } else if (notif.contains("AVAILABLE")
+                        || notif.contains("available")) {
+
+                    icon = UIManager.getIcon("OptionPane.informationIcon");
+                    color = new Color(34, 197, 94);
+
+                } else if (notif.contains("Returned")
+                        || notif.contains("RETURNED")) {
+
+                    icon = UIManager.getIcon("OptionPane.informationIcon");
+                    color = new Color(16, 185, 129);
+
+                } else {
+
+                    icon = UIManager.getIcon("OptionPane.warningIcon");
+                    color = new Color(220, 38, 38);
                 }
+
+                container.add(createNotification(
+                        notif,
+                        icon,
+                        color
+                ));
+
+                hasNotif = true;
             }
         }
 
-        // ================= PAYMENT REQUESTS =================
+        // ======================================================
+        // OVERDUE / FINES
+        // ======================================================
+
         for (Book b : db.getBorrowedBooks()) {
 
-            if (b == null) continue; // 🔥 SAFE CHECK ADDED
+            if (b == null) continue;
+
+            if (b.borrowed && b.getFine() > 0) {
+
+                container.add(createNotification(
+                        "Overdue / Fine: "
+                                + b.title
+                                + " (₱"
+                                + b.getFine()
+                                + ")",
+                        UIManager.getIcon("OptionPane.errorIcon"),
+                        new Color(220, 38, 38)
+                ));
+
+                hasNotif = true;
+            }
+        }
+
+        // ======================================================
+        // PAYMENT REQUESTS
+        // ======================================================
+
+        for (Book b : db.getBorrowedBooks()) {
+
+            if (b == null) continue;
 
             if (b.paymentRequested && !b.paymentConfirmed) {
 
                 container.add(createNotification(
-                        "Payment Pending: " + b.title + " via " + b.paymentMethod,
+                        "Payment Pending: "
+                                + b.title
+                                + " via "
+                                + b.paymentMethod,
                         UIManager.getIcon("OptionPane.warningIcon"),
                         new Color(255, 193, 7)
                 ));
@@ -83,7 +149,7 @@ public class NotificationPanel extends JPanel {
             }
         }
 
-        // ================= EMPTY STATE =================
+        // ================= EMPTY =================
         if (!hasNotif) {
 
             container.add(createNotification(
@@ -101,23 +167,40 @@ public class NotificationPanel extends JPanel {
     }
 
     // ================= CARD =================
-    private JPanel createNotification(String message, Icon icon, Color color) {
+    private JPanel createNotification(
+            String message,
+            Icon icon,
+            Color color
+    ) {
 
         JPanel card = new JPanel(new BorderLayout());
+
         card.setBorder(new EmptyBorder(10, 10, 10, 10));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 65));
+
+        card.setMaximumSize(
+                new Dimension(Integer.MAX_VALUE, 65)
+        );
+
         card.setBackground(Color.WHITE);
 
         JPanel iconPanel = new JPanel();
+
         iconPanel.setBackground(color);
-        iconPanel.setPreferredSize(new Dimension(50, 50));
+
+        iconPanel.setPreferredSize(
+                new Dimension(50, 50)
+        );
+
         iconPanel.setLayout(new GridBagLayout());
 
         JLabel iconLabel = new JLabel(icon);
+
         iconPanel.add(iconLabel);
 
         JLabel msg = new JLabel(message);
+
         msg.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
         msg.setBorder(new EmptyBorder(0, 10, 0, 0));
 
         card.add(iconPanel, BorderLayout.WEST);

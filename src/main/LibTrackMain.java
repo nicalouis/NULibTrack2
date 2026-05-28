@@ -7,7 +7,7 @@ public class LibTrackMain {
 
     public static void main(String[] args) {
 
-        // 🔥 Ensures proper Swing UI thread execution
+        // proper Swing UI thread execution
         SwingUtilities.invokeLater(() -> {
 
             try {

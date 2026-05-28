@@ -53,9 +53,9 @@ public class FineApprovalPanel extends JPanel {
 
             if (b.paymentRequested && !b.paymentConfirmed) {
 
-                // 🔥 FIX: ensure null-safe fine display (prevents crashes)
+                // ensure null-safe fine display 
                 if (b.borrowed && b.borrowDate == null) {
-                    b.borrowDate = b.borrowDate; // no logic change, just safety guard
+                    b.borrowDate = b.borrowDate; // safety guard
                 }
 
                 list.add(card(b));

@@ -22,25 +22,23 @@ public class CatalogPanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(AppColor.BACKGROUND);
 
-        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 12));
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT,12,12));
         header.setBackground(AppColor.BACKGROUND);
-        header.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        header.setBorder(BorderFactory.createEmptyBorder(5,10,5,10));
 
-        JLabel icon = new JLabel(loadIcon("src/search.jpg", 40, 40));
+        JLabel icon = new JLabel(loadIcon("src/search.jpg",40,40));
 
         JLabel title = new JLabel("Book Catalog");
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        title.setForeground(new Color(30, 41, 59));
+        title.setForeground(new Color(30,41,59));
 
         searchField = new JTextField(20);
-        searchField.setPreferredSize(new Dimension(220, 36));
+        searchField.setPreferredSize(new Dimension(220,36));
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
         JButton searchBtn = new JButton("SEARCH");
-        searchBtn.setBackground(AppColor.SECONDARY);
-        searchBtn.setForeground(Color.WHITE);
-        searchBtn.setFocusPainted(false);
-        searchBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+
+        styleButton(searchBtn, AppColor.SECONDARY);
 
         header.add(icon);
         header.add(title);
@@ -53,9 +51,10 @@ public class CatalogPanel extends JPanel {
         list = new JPanel();
         list.setLayout(new BoxLayout(list, BoxLayout.Y_AXIS));
         list.setBackground(AppColor.BACKGROUND);
-        list.setBorder(BorderFactory.createEmptyBorder(10, 15, 15, 15));
+        list.setBorder(BorderFactory.createEmptyBorder(10,15,15,15));
 
         JScrollPane scroll = new JScrollPane(list);
+
         scroll.setBorder(null);
         scroll.getViewport().setBackground(AppColor.BACKGROUND);
 
@@ -90,12 +89,12 @@ public class CatalogPanel extends JPanel {
 
         if (b == null) return;
 
-        String k = (keyword == null) ? "" : keyword.toLowerCase();
+        String k = keyword == null ? "" : keyword.toLowerCase();
 
         boolean match =
                 k.isEmpty()
-                        || (b.title != null && b.title.toLowerCase().contains(k))
-                        || (b.author != null && b.author.toLowerCase().contains(k));
+                || b.title.toLowerCase().contains(k)
+                || b.author.toLowerCase().contains(k);
 
         if (match) {
             list.add(card(b));
@@ -105,42 +104,36 @@ public class CatalogPanel extends JPanel {
 
     private JPanel card(Book b) {
 
-        JPanel card = new JPanel(new BorderLayout(18, 10));
+        JPanel card = new JPanel(new BorderLayout(18,10));
 
         card.setBackground(Color.WHITE);
 
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(
-                        new Color(230, 230, 230),
+                        new Color(230,230,230),
                         1,
                         true
                 ),
-                BorderFactory.createEmptyBorder(
-                        15,
-                        15,
-                        15,
-                        15
-                )
+                BorderFactory.createEmptyBorder(15,15,15,15)
         ));
 
-        JLabel img = new JLabel(loadIcon(b.image, 100, 130));
+        JLabel img = new JLabel(loadIcon(b.image,100,130));
 
         JPanel imgPanel = new JPanel(new BorderLayout());
 
         imgPanel.setBackground(Color.WHITE);
-        imgPanel.setPreferredSize(new Dimension(110, 140));
-
+        imgPanel.setPreferredSize(new Dimension(110,140));
         imgPanel.add(img, BorderLayout.CENTER);
 
         JLabel title = new JLabel(b.title);
 
         title.setFont(new Font("Segoe UI", Font.BOLD, 17));
-        title.setForeground(new Color(15, 23, 42));
+        title.setForeground(new Color(15,23,42));
 
         JLabel author = new JLabel("by " + b.author);
 
         author.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        author.setForeground(new Color(100, 100, 100));
+        author.setForeground(new Color(100,100,100));
 
         JLabel dateInfo = new JLabel();
 
@@ -148,23 +141,23 @@ public class CatalogPanel extends JPanel {
 
         if (b.borrowed) {
 
-            dateInfo.setText("Not Available • Was Borrwoed on: " + b.dueDate);
-            dateInfo.setForeground(new Color(220, 38, 38));
+            dateInfo.setText("Not Available • Borrowed");
+            dateInfo.setForeground(new Color(220,38,38));
 
         } else if (b.reserveDate != null) {
 
             dateInfo.setText("Reserved • " + b.reserveDate);
-            dateInfo.setForeground(new Color(37, 99, 235));
+            dateInfo.setForeground(new Color(37,99,235));
 
         } else if (!b.available) {
 
             dateInfo.setText("Not Available");
-            dateInfo.setForeground(new Color(220, 38, 38));
+            dateInfo.setForeground(new Color(220,38,38));
 
         } else {
 
             dateInfo.setText("Available");
-            dateInfo.setForeground(new Color(22, 163, 74));
+            dateInfo.setForeground(new Color(22,163,74));
         }
 
         JPanel text = new JPanel();
@@ -209,7 +202,7 @@ public class CatalogPanel extends JPanel {
                                 "You can only borrow 3 books at a time."
                         ),
                         "Warning",
-                        JOptionPane.WARNING_MESSAGE
+                        JOptionPane.PLAIN_MESSAGE
                 );
 
                 return;
@@ -224,28 +217,26 @@ public class CatalogPanel extends JPanel {
                                 "This book is currently not available."
                         ),
                         "Borrow Failed",
-                        JOptionPane.WARNING_MESSAGE
+                        JOptionPane.PLAIN_MESSAGE
                 );
 
                 return;
             }
 
-            JPanel popup = createSuccessPopup(
-                    "BOOK BORROWED",
-                    "Transaction Successful",
-                    b.title,
-                    b.author,
-                    "DUE DATE",
-                    b.dueDate,
-                    new Color(239, 246, 255),
-                    new Color(29, 78, 216),
-                    new Color(220, 38, 38),
-                    b.image
-            );
-
             JOptionPane.showMessageDialog(
                     SwingUtilities.getWindowAncestor(this),
-                    popup,
+                    createSuccessPopup(
+                            "BOOK BORROWED",
+                            "Transaction Successful",
+                            b.title,
+                            b.author,
+                            "DUE DATE",
+                            b.dueDate,
+                            new Color(239,246,255),
+                            new Color(29,78,216),
+                            new Color(220,38,38),
+                            b.image
+                    ),
                     "Borrow Success",
                     JOptionPane.PLAIN_MESSAGE
             );
@@ -268,7 +259,7 @@ public class CatalogPanel extends JPanel {
                                 "You can only reserve 3 books at a time."
                         ),
                         "Warning",
-                        JOptionPane.WARNING_MESSAGE
+                        JOptionPane.PLAIN_MESSAGE
                 );
 
                 return;
@@ -280,22 +271,20 @@ public class CatalogPanel extends JPanel {
 
             b.reserveDate = selectedDate;
 
-            JPanel popup = createSuccessPopup(
-                    "BOOK RESERVED",
-                    "Reservation Confirmed",
-                    b.title,
-                    b.author,
-                    "RESERVED DATE",
-                    b.reserveDate,
-                    new Color(236, 253, 245),
-                    new Color(21, 128, 61),
-                    new Color(22, 163, 74),
-                    b.image
-            );
-
             JOptionPane.showMessageDialog(
                     SwingUtilities.getWindowAncestor(this),
-                    popup,
+                    createSuccessPopup(
+                            "BOOK RESERVED",
+                            "Reservation Confirmed",
+                            b.title,
+                            b.author,
+                            "RESERVED DATE",
+                            b.reserveDate,
+                            new Color(236,253,245),
+                            new Color(21,128,61),
+                            new Color(22,163,74),
+                            b.image
+                    ),
                     "Reserve Success",
                     JOptionPane.PLAIN_MESSAGE
             );
@@ -335,106 +324,66 @@ public class CatalogPanel extends JPanel {
             String imagePath
     ) {
 
-        JPanel main = new JPanel(new BorderLayout(18, 0));
+        JPanel main = new JPanel(new BorderLayout(18,0));
 
         main.setBackground(Color.WHITE);
 
         main.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(
-                        new Color(220, 220, 220),
+                        new Color(220,220,220),
                         1,
                         true
                 ),
-                BorderFactory.createEmptyBorder(
-                        20,
-                        20,
-                        20,
-                        20
-                )
+                BorderFactory.createEmptyBorder(20,20,20,20)
         ));
 
-        // LEFT IMAGE
-
-        JLabel bookImage = new JLabel(loadIcon(imagePath, 120, 160));
+        JLabel bookImage = new JLabel(loadIcon(imagePath,120,160));
 
         JPanel imagePanel = new JPanel(new BorderLayout());
 
         imagePanel.setBackground(Color.WHITE);
-        imagePanel.setPreferredSize(new Dimension(130, 170));
-
+        imagePanel.setPreferredSize(new Dimension(130,170));
         imagePanel.add(bookImage, BorderLayout.CENTER);
-
-        // RIGHT CONTENT
 
         JPanel content = new JPanel();
 
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(Color.WHITE);
 
-        JLabel icon = new JLabel("✓");
-
-        icon.setFont(new Font("Segoe UI", Font.BOLD, 30));
-        icon.setForeground(titleColor);
-        icon.setAlignmentX(Component.LEFT_ALIGNMENT);
-
         JLabel popupTitle = new JLabel(title);
 
         popupTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
         popupTitle.setForeground(titleColor);
-        popupTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JLabel sub = new JLabel(subtitle);
 
         sub.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        sub.setForeground(new Color(110, 110, 110));
-        sub.setAlignmentX(Component.LEFT_ALIGNMENT);
+        sub.setForeground(new Color(110,110,110));
 
-        JPanel infoCard = new JPanel();
+        JPanel info = new JPanel();
 
-        infoCard.setLayout(new BoxLayout(infoCard, BoxLayout.Y_AXIS));
-        infoCard.setBackground(new Color(249, 250, 251));
+        info.setLayout(new BoxLayout(info, BoxLayout.Y_AXIS));
+        info.setBackground(new Color(249,250,251));
 
-        infoCard.setBorder(BorderFactory.createCompoundBorder(
+        info.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(
-                        new Color(230, 230, 230),
+                        new Color(230,230,230),
                         1,
                         true
                 ),
-                BorderFactory.createEmptyBorder(
-                        14,
-                        16,
-                        14,
-                        16
-                )
+                BorderFactory.createEmptyBorder(14,16,14,16)
         ));
 
-        JLabel bookLbl = new JLabel("BOOK TITLE");
-
-        bookLbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        bookLbl.setForeground(new Color(120, 120, 120));
-
         JLabel bookTxt = new JLabel(bookTitle);
-
         bookTxt.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        bookTxt.setForeground(new Color(17, 24, 39));
 
-        JLabel authorLbl = new JLabel("AUTHOR");
-
-        authorLbl.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        authorLbl.setForeground(new Color(120, 120, 120));
-
-        JLabel authorTxt = new JLabel(author);
-
+        JLabel authorTxt = new JLabel("by " + author);
         authorTxt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        authorTxt.setForeground(new Color(55, 65, 81));
+        authorTxt.setForeground(new Color(80,80,80));
 
-        infoCard.add(bookLbl);
-        infoCard.add(Box.createVerticalStrut(5));
-        infoCard.add(bookTxt);
-        infoCard.add(Box.createVerticalStrut(14));
-        infoCard.add(authorLbl);
-        infoCard.add(Box.createVerticalStrut(5));
-        infoCard.add(authorTxt);
+        info.add(bookTxt);
+        info.add(Box.createVerticalStrut(6));
+        info.add(authorTxt);
 
         JPanel highlight = new JPanel();
 
@@ -451,14 +400,12 @@ public class CatalogPanel extends JPanel {
         JLabel hlTitle = new JLabel(label);
 
         hlTitle.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        hlTitle.setForeground(new Color(90, 90, 90));
-        hlTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        hlTitle.setForeground(new Color(90,90,90));
 
         JLabel hlValue = new JLabel(value);
 
         hlValue.setFont(new Font("Segoe UI", Font.BOLD, 19));
         hlValue.setForeground(valueColor);
-        hlValue.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         highlight.add(hlTitle);
         highlight.add(Box.createVerticalStrut(5));
@@ -469,16 +416,13 @@ public class CatalogPanel extends JPanel {
         );
 
         footer.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-        footer.setForeground(new Color(120, 120, 120));
-        footer.setAlignmentX(Component.LEFT_ALIGNMENT);
+        footer.setForeground(new Color(120,120,120));
 
-        content.add(icon);
-        content.add(Box.createVerticalStrut(5));
         content.add(popupTitle);
         content.add(Box.createVerticalStrut(4));
         content.add(sub);
         content.add(Box.createVerticalStrut(16));
-        content.add(infoCard);
+        content.add(info);
         content.add(Box.createVerticalStrut(14));
         content.add(highlight);
         content.add(Box.createVerticalStrut(14));
@@ -490,7 +434,7 @@ public class CatalogPanel extends JPanel {
         return main;
     }
 
-    // ================= WARNING PANEL =================
+    // ================= WARNING =================
 
     private JPanel createWarningPanel(String title, String msg) {
 
@@ -506,27 +450,20 @@ public class CatalogPanel extends JPanel {
                 20
         ));
 
-        JLabel icon = new JLabel("⚠");
-
-        icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 34));
-        icon.setAlignmentX(Component.CENTER_ALIGNMENT);
-
         JLabel t = new JLabel(title);
 
         t.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        t.setForeground(new Color(180, 83, 9));
+        t.setForeground(new Color(180,83,9));
         t.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel m = new JLabel(msg);
 
         m.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        m.setForeground(new Color(90, 90, 90));
+        m.setForeground(new Color(90,90,90));
         m.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        panel.add(icon);
-        panel.add(Box.createVerticalStrut(10));
         panel.add(t);
-        panel.add(Box.createVerticalStrut(8));
+        panel.add(Box.createVerticalStrut(10));
         panel.add(m);
 
         return panel;
@@ -548,8 +485,7 @@ public class CatalogPanel extends JPanel {
         ));
 
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-        btn.setPreferredSize(new Dimension(110, 36));
+        btn.setPreferredSize(new Dimension(110,36));
     }
 
     public void refresh() {
@@ -567,14 +503,12 @@ public class CatalogPanel extends JPanel {
 
         ImageIcon icon = new ImageIcon(path);
 
-        Image img = icon.getImage();
-
-        Image scaled = img.getScaledInstance(
+        Image img = icon.getImage().getScaledInstance(
                 w,
                 h,
                 Image.SCALE_SMOOTH
         );
 
-        return new ImageIcon(scaled);
+        return new ImageIcon(img);
     }
 }

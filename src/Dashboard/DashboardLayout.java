@@ -94,7 +94,7 @@ public class DashboardLayout extends JFrame {
         sidebarBox.add(menu);
         sidebarBox.add(Box.createVerticalStrut(10));
 
-        // 🔥 FIX: ADD SCROLL PANE HERE
+        // SCROLL PANE
         JScrollPane scroll = new JScrollPane(sidebarBox);
         scroll.setBorder(null);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -114,7 +114,7 @@ public class DashboardLayout extends JFrame {
 
     protected void switchPanel(String name) {
 
-        if (contentPanel == null) return; // 🔥 SAFE GUARD ADDED
+        if (contentPanel == null) return; // SAFE GUARD ADDED
 
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, name);
