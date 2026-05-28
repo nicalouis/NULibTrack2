@@ -16,12 +16,17 @@ public class FinePanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(AppColor.BACKGROUND);
 
-        // ================= HEADER =================
+        // ================= HEADER (IMPROVED LAYOUT WRAP) =================
+        JPanel header = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        header.setBackground(AppColor.BACKGROUND);
+        header.setBorder(BorderFactory.createEmptyBorder(15, 25, 10, 20));
+
         JLabel title = new JLabel("Student Fines Overview");
         title.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        title.setBorder(BorderFactory.createEmptyBorder(20, 30, 10, 20));
+        title.setForeground(new Color(30, 30, 30));
 
-        add(title, BorderLayout.NORTH);
+        header.add(title);
+        add(header, BorderLayout.NORTH);
 
         // ================= CONTAINER =================
         container = new JPanel();
@@ -31,6 +36,7 @@ public class FinePanel extends JPanel {
 
         JScrollPane scroll = new JScrollPane(container);
         scroll.setBorder(null);
+        scroll.getViewport().setBackground(AppColor.BACKGROUND);
 
         add(scroll, BorderLayout.CENTER);
 
@@ -65,11 +71,13 @@ public class FinePanel extends JPanel {
 
             JLabel empty = new JLabel("No fines or payment activity.");
             empty.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+            empty.setForeground(Color.GRAY);
 
             JPanel wrap = new JPanel();
             wrap.setBackground(AppColor.BACKGROUND);
             wrap.add(empty);
 
+            container.add(Box.createVerticalStrut(20));
             container.add(wrap);
         }
 
@@ -77,11 +85,11 @@ public class FinePanel extends JPanel {
         container.repaint();
     }
 
-    // ================= CARD (FIXED ALIGNMENT) =================
+    // ================= CARD (IMPROVED LAYOUT BALANCE) =================
     private JPanel createFineCard(Book b) {
 
-        JPanel card = new JPanel(new GridLayout(1, 3, 10, 0));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        JPanel card = new JPanel(new BorderLayout(15, 10));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 85));
         card.setBackground(Color.WHITE);
 
         card.setBorder(BorderFactory.createCompoundBorder(
@@ -89,7 +97,7 @@ public class FinePanel extends JPanel {
                 BorderFactory.createEmptyBorder(10, 15, 10, 15)
         ));
 
-        // ================= LEFT (TITLE) =================
+        // ================= LEFT =================
         JLabel name = new JLabel(b.title);
         name.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
@@ -97,7 +105,7 @@ public class FinePanel extends JPanel {
         left.setBackground(Color.WHITE);
         left.add(name);
 
-        // ================= CENTER (FINE AMOUNT - FIXED ALIGNMENT) =================
+        // ================= CENTER =================
         JLabel amount = new JLabel("₱ " + b.getFine());
         amount.setFont(new Font("Segoe UI", Font.BOLD, 16));
         amount.setForeground(Color.RED);
@@ -106,7 +114,7 @@ public class FinePanel extends JPanel {
         center.setBackground(Color.WHITE);
         center.add(amount);
 
-        // ================= RIGHT (STATUS) =================
+        // ================= RIGHT =================
         String statusText;
         Color statusColor;
 
@@ -116,7 +124,6 @@ public class FinePanel extends JPanel {
 
         } else if (b.paymentRequested) {
             statusText = "PENDING";
-
             statusColor = Color.ORANGE;
 
         } else if (b.getFine() > 0) {
@@ -137,9 +144,9 @@ public class FinePanel extends JPanel {
         right.add(status);
 
         // ================= ADD =================
-        card.add(left);
-        card.add(center);
-        card.add(right);
+        card.add(left, BorderLayout.WEST);
+        card.add(center, BorderLayout.CENTER);
+        card.add(right, BorderLayout.EAST);
 
         return card;
     }

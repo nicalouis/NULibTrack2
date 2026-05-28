@@ -31,15 +31,28 @@ public class NotificationPanel extends JPanel {
 
         LibraryDB db = LibraryDB.get();
 
+        // 🔥 SAFE NULL CHECK (ADDED)
+        if (db == null || db.getBorrowedBooks() == null) {
+            container.add(createNotification(
+                    "No data available",
+                    UIManager.getIcon("OptionPane.informationIcon"),
+                    new Color(59, 130, 246)
+            ));
+
+            add(top, BorderLayout.NORTH);
+            add(new JScrollPane(container), BorderLayout.CENTER);
+            return;
+        }
+
         boolean hasNotif = false;
 
         // ================= OVERDUE + BORROWED =================
         for (Book b : db.getBorrowedBooks()) {
 
-            // ✔ FIXED LOGIC: borrowed = active book
+            if (b == null) continue; // 🔥 SAFE CHECK ADDED
+
             if (b.borrowed) {
 
-                // ⚠️ simplified overdue rule (until real date system)
                 if (!b.finePaid) {
 
                     container.add(createNotification(
@@ -55,6 +68,8 @@ public class NotificationPanel extends JPanel {
 
         // ================= PAYMENT REQUESTS =================
         for (Book b : db.getBorrowedBooks()) {
+
+            if (b == null) continue; // 🔥 SAFE CHECK ADDED
 
             if (b.paymentRequested && !b.paymentConfirmed) {
 

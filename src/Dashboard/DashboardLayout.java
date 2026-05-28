@@ -80,18 +80,11 @@ public class DashboardLayout extends JFrame {
         sidebar.setBorder(BorderFactory.createEmptyBorder(18, 12, 18, 12));
         sidebar.setPreferredSize(new Dimension(260, 700));
 
-        // ================= SCROLLABLE BOX (FIXED) =================
-       // ================= SCROLLABLE BOX (FIXED) =================
-sidebarBox = new JPanel();
-
-sidebarBox.setLayout(new BoxLayout(sidebarBox, BoxLayout.Y_AXIS));
-
-sidebarBox.setBackground(new Color(25, 40, 75));
-
-sidebarBox.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createLineBorder(new Color(255, 204, 0, 80), 1),
-        BorderFactory.createEmptyBorder(15, 12, 15, 12)
-));
+        // ================= SCROLLABLE BOX =================
+        sidebarBox = new JPanel();
+        sidebarBox.setLayout(new BoxLayout(sidebarBox, BoxLayout.Y_AXIS));
+        sidebarBox.setBackground(new Color(25, 40, 75));
+        sidebarBox.setBorder(BorderFactory.createEmptyBorder(15, 12, 15, 12));
 
         JLabel menu = new JLabel("PATRON MENU", SwingConstants.CENTER);
         menu.setForeground(Color.WHITE);
@@ -101,7 +94,13 @@ sidebarBox.setBorder(BorderFactory.createCompoundBorder(
         sidebarBox.add(menu);
         sidebarBox.add(Box.createVerticalStrut(10));
 
-        sidebar.add(sidebarBox, BorderLayout.CENTER);
+        // 🔥 FIX: ADD SCROLL PANE HERE
+        JScrollPane scroll = new JScrollPane(sidebarBox);
+        scroll.setBorder(null);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+
+        sidebar.add(scroll, BorderLayout.CENTER);
 
         // ================= CONTENT =================
         contentPanel = new JPanel(new CardLayout());
@@ -114,6 +113,9 @@ sidebarBox.setBorder(BorderFactory.createCompoundBorder(
     }
 
     protected void switchPanel(String name) {
+
+        if (contentPanel == null) return; // 🔥 SAFE GUARD ADDED
+
         CardLayout cl = (CardLayout) contentPanel.getLayout();
         cl.show(contentPanel, name);
     }

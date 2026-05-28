@@ -10,8 +10,8 @@ public class AppColor {
     public static final Color BACKGROUND = new Color(240, 242, 245);  // light gray
 
     // ================= UI SURFACES =================
-    public static final Color CARD = Color.WHITE;                     // FIXED (was missing)
-    public static final Color INFO = new Color(52, 152, 219);         // FIXED (blue info)
+    public static final Color CARD = Color.WHITE;                     
+    public static final Color INFO = new Color(52, 152, 219);         
 
     // ================= SIDEBAR =================
     public static final Color SIDEBAR_BG = new Color(12, 28, 60);

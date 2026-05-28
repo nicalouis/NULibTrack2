@@ -7,10 +7,10 @@ public class modelU {
     protected String email;
     protected String password;
 
-    // 🔥 NEW: role support
+    // NEW: role support
     protected String role;
 
-    // 🔥 OPTIONAL FUTURE USE
+    // OPTIONAL FUTURE USE
     protected boolean active = true;
 
     // ================= ORIGINAL CONSTRUCTOR =================

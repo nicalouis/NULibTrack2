@@ -51,17 +51,24 @@ public class BorrowedPanel extends JPanel {
 
         LibraryDB db = LibraryDB.get();
 
-        // ✔ FIX: only show valid borrowed books
-        for (Book b : db.getBorrowedBooks()) {
+        boolean found = false;
 
-            if (b != null && b.borrowed) {
-                list.add(card(b));
-                list.add(Box.createVerticalStrut(12));
-            }
+        for (LibraryDB.BorrowRecord r : db.borrowRecords) {
+
+            if (r == null) continue;
+            if (r.email == null) continue;
+            if (!r.email.equals(db.currentUserEmail)) continue;
+            if (r.book == null) continue;
+
+            Book b = r.book;
+
+            // 🔥 FIX: DO NOT RELY ON b.borrowed (THIS WAS BREAKING YOUR SYSTEM)
+            list.add(card(b));
+            list.add(Box.createVerticalStrut(12));
+            found = true;
         }
 
-        // empty state
-        if (list.getComponentCount() == 0) {
+        if (!found) {
 
             JLabel empty = new JLabel("No borrowed books yet.");
             empty.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -70,6 +77,7 @@ public class BorrowedPanel extends JPanel {
             wrap.setBackground(AppColor.BACKGROUND);
             wrap.add(empty);
 
+            list.add(Box.createVerticalStrut(20));
             list.add(wrap);
         }
 
@@ -84,14 +92,13 @@ public class BorrowedPanel extends JPanel {
         p.setBackground(Color.WHITE);
         p.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
 
-        // ================= IMAGE =================
-        JLabel img = new JLabel(loadIcon(b.image, 80, 100));
+        JLabel img = new JLabel(loadIcon(b.image, 80, 105));
 
         JPanel imgPanel = new JPanel();
         imgPanel.setBackground(Color.WHITE);
+        imgPanel.setPreferredSize(new Dimension(100, 110));
         imgPanel.add(img);
 
-        // ================= TEXT =================
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -99,20 +106,28 @@ public class BorrowedPanel extends JPanel {
         JLabel title = new JLabel(b.title);
         title.setFont(new Font("Segoe UI", Font.BOLD, 15));
 
-        String borrowInfo =
-                (b.borrowDate != null)
-                        ? "Borrowed: " + b.borrowDate + " | Due: " + b.dueDate
-                        : "No date info";
+        JLabel dateInfo = new JLabel();
 
-        JLabel dateInfo = new JLabel(borrowInfo);
+        // ================= FIXED DATE DISPLAY =================
+        String borrow = (b.borrowDate != null) ? b.borrowDate : "N/A";
+        String due = (b.dueDate != null) ? b.dueDate : "N/A";
+
+        String info = "Borrowed: " + borrow + " | Due: " + due;
+
+        if (b.isOverdue()) {
+            dateInfo.setText(info + " (OVERDUE)");
+            dateInfo.setForeground(new Color(220, 38, 38));
+        } else {
+            dateInfo.setText(info);
+            dateInfo.setForeground(Color.GRAY);
+        }
+
         dateInfo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        dateInfo.setForeground(Color.GRAY);
 
         text.add(title);
         text.add(Box.createVerticalStrut(5));
         text.add(dateInfo);
 
-        // ================= BUTTON =================
         JButton returnBtn = new JButton("RETURN");
         returnBtn.setBackground(AppColor.SECONDARY);
         returnBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -124,8 +139,12 @@ public class BorrowedPanel extends JPanel {
 
             db.returnBook(b);
 
-            // IMPORTANT FIX: refresh UI immediately
+            // 🔥 FULL SYNC FIX
             refresh();
+
+            if (PatronPanel.CatalogPanel.instance != null) {
+                PatronPanel.CatalogPanel.instance.refresh();
+            }
         });
 
         p.add(imgPanel, BorderLayout.WEST);
@@ -135,7 +154,7 @@ public class BorrowedPanel extends JPanel {
         return p;
     }
 
-    // ================= IMAGE LOADER =================
+    // ================= IMAGE =================
     private ImageIcon loadIcon(String path, int w, int h) {
 
         ImageIcon icon = new ImageIcon(path);

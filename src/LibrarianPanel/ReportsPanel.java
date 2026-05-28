@@ -13,6 +13,9 @@ public class ReportsPanel extends JPanel {
 
         LibraryDB db = LibraryDB.get();
 
+        // 🔥 SAFETY CHECK (ADDED ONLY)
+        if (db == null) return;
+
         add(createCard("Total Books", String.valueOf(db.books.size())));
         add(createCard("Active Members", String.valueOf(db.patrons.size())));
         add(createCard("Overdue Books", String.valueOf(getOverdueCount(db))));
@@ -26,9 +29,16 @@ public class ReportsPanel extends JPanel {
 
         for (LibraryDB.Book b : db.borrowed) {
 
+            if (b == null) continue; // 🔥 SAFETY FIX
+
+            // ⚠️ FIXED LOGIC (your old version counted ALL books with dueDate)
+            // Now it only counts ACTUALLY overdue books if fine exists or overdue flag exists
             if (b.borrowed && b.dueDate != null) {
 
-                count++;
+                // improved check (still same structure, just safer meaning)
+                if (b.getFine() > 0 || b.paymentRequested) {
+                    count++;
+                }
             }
         }
 
@@ -43,8 +53,8 @@ public class ReportsPanel extends JPanel {
         panel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         panel.setLayout(new GridLayout(2,1));
 
-        JLabel t = new JLabel(title,SwingConstants.CENTER);
-        JLabel v = new JLabel(value,SwingConstants.CENTER);
+        JLabel t = new JLabel(title, SwingConstants.CENTER);
+        JLabel v = new JLabel(value, SwingConstants.CENTER);
 
         t.setFont(new Font("Arial", Font.BOLD, 20));
         v.setFont(new Font("Arial", Font.BOLD, 35));

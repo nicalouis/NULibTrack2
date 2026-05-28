@@ -39,7 +39,6 @@ public class LibrarianHomePanel extends JPanel {
         JLabel v = new JLabel("0");
         v.setFont(new Font("Segoe UI", Font.BOLD, 30));
 
-        // store references for updates
         if (type == 1) booksValue = v;
         if (type == 2) usersValue = v;
         if (type == 3) finesValue = v;
@@ -50,25 +49,39 @@ public class LibrarianHomePanel extends JPanel {
         return c;
     }
 
-    // ================= UPDATE DATA =================
+    // ================= UPDATE DATA (FIXED LIVE SYNC) =================
     public void updateData() {
 
         LibraryDB db = LibraryDB.get();
 
+        // ================= BOOK COUNT FIX =================
         if (booksValue != null) {
-            booksValue.setText(String.valueOf(db.books.size()));
+
+            int totalBooks =
+                    db.books.size() +
+                    db.borrowed.size() +
+                    db.reservations.size();
+
+            booksValue.setText(String.valueOf(totalBooks));
         }
 
+        // ================= USER COUNT =================
         if (usersValue != null) {
-            usersValue.setText(String.valueOf(db.patrons.size() + db.librarians.size()));
+            usersValue.setText(
+                    String.valueOf(db.patrons.size() + db.librarians.size())
+            );
         }
 
+        // ================= FINE COUNT FIX =================
         if (finesValue != null) {
 
             int totalFines = 0;
 
             for (LibraryDB.Book b : db.borrowed) {
-                totalFines += b.getFine();
+
+                if (b != null) {
+                    totalFines += b.getFine();
+                }
             }
 
             finesValue.setText("₱" + totalFines);

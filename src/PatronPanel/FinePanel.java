@@ -48,13 +48,25 @@ public class FinePanel extends JPanel {
 
         boolean found = false;
 
-        for (Book b : LibraryDB.get().getBorrowedBooks()) {
+        LibraryDB db = LibraryDB.get();
 
-            if (b.isOverdue()) {
+        // 🔥 FIX: only show CURRENT USER borrowed books
+        for (Book b : db.borrowed) {
 
-                list.add(card(b));
-                list.add(Box.createVerticalStrut(10));
-                found = true;
+            if (db.currentUserEmail == null) continue;
+
+            for (LibraryDB.BorrowRecord r : db.borrowRecords) {
+
+                if (r.email != null
+                        && r.email.equals(db.currentUserEmail)
+                        && r.book == b) {
+
+                    if (b.isOverdue() && !b.finePaid) {
+                        list.add(card(b));
+                        list.add(Box.createVerticalStrut(10));
+                        found = true;
+                    }
+                }
             }
         }
 
@@ -73,7 +85,7 @@ public class FinePanel extends JPanel {
         list.repaint();
     }
 
-    // ================= FIXED FINE CALCULATION =================
+    // Fine calculation (UNCHANGED LOGIC)
     private int calculateFine(Book b) {
 
         try {
@@ -91,10 +103,10 @@ public class FinePanel extends JPanel {
 
             if (days <= allowedDays) return 0;
 
-            return (int) (days - allowedDays) * 10; // ₱10 per day
+            return (int) (days - allowedDays) * 10;
 
         } catch (Exception e) {
-            return 0; // 🔥 IMPORTANT FIX: avoid fallback 50 bug
+            return 0;
         }
     }
 
@@ -123,13 +135,20 @@ public class FinePanel extends JPanel {
         fine.setForeground(AppColor.DANGER);
         fine.setFont(new Font("Segoe UI", Font.BOLD, 16));
 
-        JLabel status = new JLabel(
-                b.paymentRequested ? "PENDING APPROVAL" : "UNPAID"
-        );
+        JLabel status;
 
-        status.setForeground(
-                b.paymentRequested ? Color.ORANGE : AppColor.DANGER
-        );
+        if (b.finePaid) {
+            status = new JLabel("PAID");
+            status.setForeground(new Color(0, 150, 0));
+        }
+        else if (b.paymentRequested) {
+            status = new JLabel("PENDING APPROVAL");
+            status.setForeground(Color.ORANGE);
+        }
+        else {
+            status = new JLabel("UNPAID");
+            status.setForeground(AppColor.DANGER);
+        }
 
         text.add(title);
         text.add(fine);

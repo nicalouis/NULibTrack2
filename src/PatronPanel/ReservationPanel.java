@@ -52,8 +52,11 @@ public class ReservationPanel extends JPanel {
         LibraryDB db = LibraryDB.get();
 
         for (Book b : db.reservations) {
-            list.add(card(b));
-            list.add(Box.createVerticalStrut(12));
+
+            if (b != null) {
+                list.add(card(b));
+                list.add(Box.createVerticalStrut(12));
+            }
         }
 
         if (db.reservations.isEmpty()) {
@@ -79,7 +82,6 @@ public class ReservationPanel extends JPanel {
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // ================= IMAGE =================
         JLabel img = new JLabel(loadIcon(b.image, 90, 110));
 
         JPanel imgPanel = new JPanel();
@@ -87,7 +89,6 @@ public class ReservationPanel extends JPanel {
         imgPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 15));
         imgPanel.add(img);
 
-        // ================= TEXT =================
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -99,7 +100,7 @@ public class ReservationPanel extends JPanel {
         author.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         author.setForeground(Color.DARK_GRAY);
 
-        // 🔥 FIX: SAFE DATE DISPLAY (NO NULL ISSUE)
+        // ================= SAFE DATE DISPLAY =================
         String reserveDate =
                 (b.reserveDate != null && !b.reserveDate.isEmpty())
                         ? b.reserveDate
@@ -115,7 +116,6 @@ public class ReservationPanel extends JPanel {
         text.add(Box.createVerticalStrut(8));
         text.add(date);
 
-        // ================= CANCEL BUTTON =================
         JButton cancel = new JButton("CANCEL");
         cancel.setFont(new Font("Segoe UI", Font.BOLD, 12));
         cancel.setFocusPainted(false);
@@ -128,15 +128,22 @@ public class ReservationPanel extends JPanel {
 
         cancel.addActionListener(e -> {
 
-            LibraryDB.get().cancelReserve(b);
+            LibraryDB db = LibraryDB.get();
+
+            db.cancelReserve(b);
+
             refresh();
+
+            // 🔥 keep UI synced
+            if (PatronPanel.CatalogPanel.instance != null) {
+                PatronPanel.CatalogPanel.instance.refresh();
+            }
         });
 
         JPanel btnPanel = new JPanel();
         btnPanel.setBackground(Color.WHITE);
         btnPanel.add(cancel);
 
-        // ================= LAYOUT =================
         card.add(imgPanel, BorderLayout.WEST);
         card.add(text, BorderLayout.CENTER);
         card.add(btnPanel, BorderLayout.EAST);

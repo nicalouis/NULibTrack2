@@ -2,9 +2,8 @@ package LibrarianPanel;
 
 import Services.LibraryDB;
 import UIUtils.AppColor;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 public class MyAccountPanel extends JPanel {
 
@@ -94,7 +93,6 @@ public class MyAccountPanel extends JPanel {
 
     // ================= CARD =================
     private JPanel createSectionCard(String titleText) {
-
         JPanel card = new JPanel();
         card.setLayout(new GridLayout(0, 1, 8, 8));
         card.setBackground(Color.WHITE);
@@ -114,7 +112,6 @@ public class MyAccountPanel extends JPanel {
 
     // ================= INPUT ROW =================
     private JTextField createInputRow(JPanel panel, String label, String value) {
-
         JLabel lbl = new JLabel(label);
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
@@ -133,7 +130,6 @@ public class MyAccountPanel extends JPanel {
 
     // ================= STAT ROW =================
     private JLabel createStatRow(JPanel panel, String label) {
-
         JLabel lbl = new JLabel(label + ": ");
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 
@@ -154,7 +150,7 @@ public class MyAccountPanel extends JPanel {
 
     // ================= UPDATE INFO =================
     public void refresh() {
-        updateInfo();   // 🔥 ensures live update when panel is opened
+        updateInfo();
         revalidate();
         repaint();
     }
@@ -163,20 +159,21 @@ public class MyAccountPanel extends JPanel {
 
         LibraryDB db = LibraryDB.get();
 
-        if (db == null) return; // 🔥 safety fix
+        // 🔥 SAFE CHECK (PREVENT CRASH)
+        if (db == null) return;
 
-        // Books in system
         managedBooks.setText(String.valueOf(db.books.size()));
-
-        // REAL transactions = history
         transactionsHandled.setText(String.valueOf(db.history.size()));
 
-        // Fine total
         int totalFines = 0;
 
-        for (LibraryDB.Book b : db.borrowed) {
-            if (b != null) {
-                totalFines += b.getFine();
+        if (db.borrowed != null) {
+            for (LibraryDB.Book b : db.borrowed) {
+
+                // 🔥 SAFE NULL CHECK (KEEP ORIGINAL LOGIC)
+                if (b != null) {
+                    totalFines += b.getFine();
+                }
             }
         }
 
@@ -185,7 +182,6 @@ public class MyAccountPanel extends JPanel {
 
     // ================= SAVE =================
     private void saveProfile() {
-
         JOptionPane.showMessageDialog(this,
                 "Profile Updated!\n\n" +
                         "Name: " + nameField.getText() + "\n" +
@@ -200,5 +196,15 @@ public class MyAccountPanel extends JPanel {
         ImageIcon icon = new ImageIcon(path);
         Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
         return new ImageIcon(img);
+    }
+
+    // ================= HELPER TO OPEN PANEL =================
+    public static void showInFrame() {
+        JFrame frame = new JFrame("My Account");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(600, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setContentPane(new MyAccountPanel());
+        frame.setVisible(true);
     }
 }

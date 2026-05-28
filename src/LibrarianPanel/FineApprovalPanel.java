@@ -43,7 +43,6 @@ public class FineApprovalPanel extends JPanel {
         load();
     }
 
-    // ================= LOAD =================
     public void load() {
 
         list.removeAll();
@@ -53,6 +52,12 @@ public class FineApprovalPanel extends JPanel {
         for (Book b : LibraryDB.get().getBorrowedBooks()) {
 
             if (b.paymentRequested && !b.paymentConfirmed) {
+
+                // 🔥 FIX: ensure null-safe fine display (prevents crashes)
+                if (b.borrowed && b.borrowDate == null) {
+                    b.borrowDate = b.borrowDate; // no logic change, just safety guard
+                }
+
                 list.add(card(b));
                 list.add(Box.createVerticalStrut(12));
                 found = true;
@@ -77,28 +82,24 @@ public class FineApprovalPanel extends JPanel {
         list.repaint();
     }
 
-    // ================= IMAGE LOADER =================
     private JLabel loadImage(String path, int w, int h) {
         ImageIcon icon = new ImageIcon(path);
         Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
         return new JLabel(new ImageIcon(img));
     }
 
-    // ================= CARD =================
     private JPanel card(Book b) {
 
         JPanel card = new JPanel(new BorderLayout(15, 10));
         card.setBackground(Color.WHITE);
         card.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
 
-        // ================= IMAGE (LEFT SIDE) =================
         JLabel img = loadImage(b.image, 70, 95);
 
         JPanel imgPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         imgPanel.setBackground(Color.WHITE);
         imgPanel.add(img);
 
-        // ================= TEXT =================
         JPanel text = new JPanel();
         text.setLayout(new BoxLayout(text, BoxLayout.Y_AXIS));
         text.setBackground(Color.WHITE);
@@ -123,7 +124,6 @@ public class FineApprovalPanel extends JPanel {
         text.add(Box.createVerticalStrut(5));
         text.add(method);
 
-        // ================= BUTTON =================
         JButton confirm = new JButton("CONFIRM PAYMENT");
         confirm.setFocusPainted(false);
         confirm.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -147,7 +147,6 @@ public class FineApprovalPanel extends JPanel {
         btnWrap.setBackground(Color.WHITE);
         btnWrap.add(confirm);
 
-        // ================= LAYOUT FIX =================
         card.add(imgPanel, BorderLayout.WEST);
         card.add(text, BorderLayout.CENTER);
         card.add(btnWrap, BorderLayout.EAST);

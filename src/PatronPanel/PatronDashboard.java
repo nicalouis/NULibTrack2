@@ -15,6 +15,8 @@ public class PatronDashboard extends DashboardLayout {
     private FinePanel finePanel;
     private MyAccountPanel accountPanel;
 
+    private NotificationPanel notificationPanel;
+
     private JButton activeButton;
 
     public PatronDashboard() {
@@ -36,12 +38,16 @@ public class PatronDashboard extends DashboardLayout {
         finePanel = new FinePanel();
         accountPanel = new MyAccountPanel();
 
+        notificationPanel = new NotificationPanel();
+
         contentPanel.add(catalogPanel, "catalog");
         contentPanel.add(borrowedPanel, "borrowed");
         contentPanel.add(reservationPanel, "reservation");
         contentPanel.add(historyPanel, "history");
         contentPanel.add(finePanel, "fines");
         contentPanel.add(accountPanel, "account");
+
+        contentPanel.add(notificationPanel, "notifications");
     }
 
     // ================= SIDEBAR =================
@@ -65,12 +71,13 @@ public class PatronDashboard extends DashboardLayout {
         JButton historyBtn = createBtn("History");
         JButton finesBtn = createBtn("Fines");
         JButton accountBtn = createBtn("My Account");
-
-        // 🔥 NEW LOGOUT BUTTON
+        JButton notifBtn = createBtn("Notifications");
         JButton logoutBtn = createBtn("Logout");
+
         logoutBtn.setBackground(new Color(200, 50, 50));
 
         // ================= ACTIONS =================
+
         catalogBtn.addActionListener(e -> {
             switchPanel("catalog");
             setActive(catalogBtn);
@@ -102,15 +109,20 @@ public class PatronDashboard extends DashboardLayout {
 
         accountBtn.addActionListener(e -> {
             switchPanel("account");
-
-            SwingUtilities.invokeLater(() -> {
-                accountPanel.refresh();
-            });
-
+            SwingUtilities.invokeLater(accountPanel::refresh);
             setActive(accountBtn);
         });
 
-        // ================= LOGOUT ACTION =================
+        // ================= NOTIFICATIONS =================
+        notifBtn.addActionListener(e -> {
+            switchPanel("notifications");
+
+            // 🔥 IMPORTANT FIX: always refresh notifications
+            notificationPanel.refresh();
+
+            setActive(notifBtn);
+        });
+
         logoutBtn.addActionListener(e -> logout());
 
         // ================= ADD TO SIDEBAR =================
@@ -120,8 +132,9 @@ public class PatronDashboard extends DashboardLayout {
         sidebar.add(historyBtn);
         sidebar.add(finesBtn);
         sidebar.add(accountBtn);
+        sidebar.add(notifBtn);
 
-        sidebar.add(Box.createVerticalStrut(20)); // spacing
+        sidebar.add(Box.createVerticalStrut(20));
         sidebar.add(logoutBtn);
     }
 

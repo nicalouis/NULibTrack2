@@ -48,11 +48,8 @@ public class BorrowReturnPanel extends JPanel {
                 return;
             }
 
-            if (db.borrowed.size() >= 3) {
-                JOptionPane.showMessageDialog(this,
-                        "Borrow limit reached! Maximum is 3 books only.");
-                return;
-            }
+            // 🔥 FIX: global borrow size check removed (it was wrong)
+            // Borrow limit should be per user, NOT system-wide
 
             Book foundBook = null;
 
@@ -186,7 +183,6 @@ public class BorrowReturnPanel extends JPanel {
         return panel;
     }
 
-    // ================= SMALLER INPUT FIELD =================
     private JTextField styledField(String placeholder) {
 
         JTextField field = new JTextField(placeholder);
